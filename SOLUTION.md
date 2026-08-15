@@ -124,17 +124,26 @@ I successfully verified that data persists across container restarts by creating
 
 #### 3.2 – Volume inspection
 
-**Where on the host machine is the data actually stored?**
+1. Where on the host machine is the data actually stored?
  "Mountpoint": "/home/docker/volumes/jobboard-postgres-data/_data"
 
-**Named Volume vs. Bind Mount:**
-* **Named Volume:** A storage area entirely managed by Docker within its internal directory structure (in our lab environment, located at "/home/docker/volumes..."). Docker abstracts away the host OS permissions.
-* **Bind Mount:** Maps a specific, absolute path from the host machine directly into the container (e.g., mapping a local `./data` folder on your Desktop to `/app/data` inside the container).
+2.Named Volume vs. Bind Mount:
+    Named Volume: A storage area entirely managed by Docker within its internal directory structure (in our lab environment, located at "/home/docker/volumes..."). Docker abstracts away the host OS permissions.
 
-**When to prefer each in production:**
+    Bind Mount: Maps a specific, absolute path from the host machine directly into the container (e.g., mapping a local `./data` folder on your Desktop to `/app/data` inside the container).
+
+3.When to prefer each in production:
+
+    Named Volume: Use this in production for databases (like PostgreSQL). Docker manages the storage completely, which prevents file-permission errors and makes it much safer and easier to back up.
+    Bind Mount: Use this in production ONLY for injecting configuration files (like `nginx.conf`). Otherwise, it is mostly used in local development so developers can edit code and see changes immediately without rebuilding the container.
+
+
+<!-- When to prefer each in production:** 
 * In **production**, **Named Volumes** are heavily preferred. They are isolated from host file-system permission issues, easier to back up using Docker CLI tools, and don't depend on the underlying host directory structure, making the containers highly portable.
-* **Bind Mounts** are generally reserved for local **development** environments (e.g., for live-reloading source code), or strictly for injecting read-only configuration files (`nginx.conf`) into production containers.
+* **Bind Mounts** are generally reserved for local **development** environments (e.g., for live-reloading source code), or strictly for injecting read-only configuration files (`nginx.conf`) into production containers. -->
 
-<!-- **When to prefer each in production:**
-* **Named Volume:** Use this in production for databases (like PostgreSQL). Docker manages the storage completely, which prevents file-permission errors and makes it much safer and easier to back up.
-* **Bind Mount:** Use this in production ONLY for injecting configuration files (like `nginx.conf`). Otherwise, it is mostly used in local development so developers can edit code and see changes immediately without rebuilding the container. -->
+
+#### 3.3 – Database backup and restore (6 pts)
+Note on Backup Verification:
+    When running `grep -c "INSERT INTO" backup_*.sql`, the output was `0`. By default, PostgreSQL's `pg_dump` utility uses the `COPY` command instead of individual `INSERT INTO` statements because it is significantly faster and more efficient for bulk data operations. Running `grep -c "COPY" backup_*.sql` the output was `2`. successfully verified that the table data was correctly backed up.
+
