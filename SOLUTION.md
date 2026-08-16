@@ -147,3 +147,56 @@ I successfully verified that data persists across container restarts by creating
 Note on Backup Verification:
     When running `grep -c "INSERT INTO" backup_*.sql`, the output was `0`. By default, PostgreSQL's `pg_dump` utility uses the `COPY` command instead of individual `INSERT INTO` statements because it is significantly faster and more efficient for bulk data operations. Running `grep -c "COPY" backup_*.sql` the output was `2`. successfully verified that the table data was correctly backed up.
 
+
+**Restore procedure** 
+
+# --- Preparation: Clean up old data to ensure a "fresh container" ---
+docker compose down -v
+
+# 1. Start ONLY the postgres service
+docker compose up -d db
+
+# 2. Copy the SQL file into the container (replace with actual filename)
+docker cp backup_20260815_175009  .sql jobboard-db:/tmp/restore.sql
+
+# 3. Run psql inside the container to restore the data
+docker exec jobboard-db psql -U postgres -d jobboard -f /tmp/restore.sql
+
+# --- Cleanup & App Startup: Get the system back online ---
+docker exec jobboard-db rm /tmp/restore.sql
+docker compose up -d
+
+
+Note: Before running the restore command on a fresh container, I had to clear the public schema because the Docker entrypoint script automatically recreated the initial tables and seed data, causing conflicts with the backup file
+    docker exec jobboard-db psql -U postgres -d jobboard -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+
+
+docker exec jobboard-db psql -U postgres -d jobboard -f /tmp/restore.sql
+SET
+SET
+SET
+SET
+SET
+ set_config 
+------------
+ 
+(1 row)
+
+SET
+SET
+SET
+SET
+SET
+SET
+CREATE TABLE
+CREATE TABLE
+COPY 0
+COPY 7
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+
+### Task 4 — CI/CD Pipeline with GitHub Actions (25 pts)
+
