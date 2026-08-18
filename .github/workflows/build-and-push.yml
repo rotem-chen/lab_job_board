@@ -31,7 +31,7 @@ jobs:
       - name: Build and push API
         uses: docker/build-push-action@v5
         with:
-          context: ./application
+          context: ./application-service
           push: true
           tags: rotemdock/jobboard-api:latest
 
