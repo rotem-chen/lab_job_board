@@ -255,5 +255,12 @@ The output verifies that the `jobs-service` container successfully resolved the 
 alexei-lnx@alexei-linx:~/DevSecOps/DevSecOps22/projects/lab-job-board$ docker exec -it jobs-service python3 -c "import psycopg2; import os; conn = psycopg2.connect(os.environ['DATABASE_URL']); print('Connected to PostgreSQL:', conn.get_dsn_parameters()); conn.close()"
 Connected to PostgreSQL: {'user': 'postgres', 'channel_binding': 'prefer', 'dbname': 'jobboard', 'host': 'postgres', 'port': '5432', 'options': '', 'sslmode': 'prefer', 'sslcompression': '0', 'sslcertmode': 'allow', 'sslsni': '1', 'ssl_min_protocol_version': 'TLSv1.2', 'gssencmode': 'prefer', 'krbsrvname': 'postgres', 'gssdelegation': '0', 'target_session_attrs': 'any', 'load_balance_hosts': 'disable'}
 
+### Task 6 — Security Hardening (Bonus — 10 pts)
+
+#### 6.1 – Use Docker secrets (5 pts)
 
 
+#### 6.2 – Add Content Security Policy headers (5 pts)
+
+Added the following CSP header to `nginx/nginx.conf`:
+`Content-Security-Policy: script-src 'self'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none';`
