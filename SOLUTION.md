@@ -200,3 +200,60 @@ ALTER TABLE
 
 ### Task 4 — CI/CD Pipeline with GitHub Actions (25 pts)
 
+#### 4.2 – Trigger and verify the pipeline (10 pts)
+![alt text](image-1.png)
+
+
+### 5.1 – Understand the Docker network
+
+1. Containers on the network with their IP addresses:
+| Container Name            | IPv4 Address |
+| :--- | :--- |
+| `jobboard-db` (Postgres)  | `172.18.0.2` |
+| `jobs-service`            | `172.18.0.3` |
+| `applications-service`    | `172.18.0.4` |
+| `jobboard-frontend`       | `172.18.0.5` |
+| `nginx-proxy`             | `172.18.0.6` |
+
+(Note: The IPs belong to the internal `172.18.0.0/16` subnet).*
+
+2. How `jobs-service` resolves the hostname `postgres` (or `jobboard-db`):
+Docker provides an embedded DNS server (located at `127.0.0.11`) for custom bridge networks. When `jobs-service` tries to communicate with the database container, it queries this internal DNS. The Docker DNS automatically maps the container name to its internal IP address on the `jobboard-network`, allowing seamless communication without hardcoding IPs.
+
+3. What happens if you try to reach `jobs-service:8000` from your browser directly? Why?
+The connection will fail (e.g., "Site cannot be reached"). The browser runs on the host machine, which is outside the isolated Docker network. The internal IP and the hostname `jobs-service` are only recognizable to containers inside the `jobboard-network`. Unless we explicitly publish the port to the host machine (using `ports` mapping in docker-compose), external access is blocked.
+
+### 5.2 – Inter-service communication test
+
+**Output from the jobs-service container:**
+\`\`\`text
+Connected to PostgreSQL: {'user': 'postgres', 'channel_binding': 'prefer', 'dbname': 'jobboard', 'host': 'postgres', 'port': '5432', 'options': '', 'sslmode': 'prefer', 'sslcompression': '0', 'sslcertmode': 'allow', 'sslsni': '1', 'ssl_min_protocol_version': 'TLSv1.2', 'gssencmode': 'prefer', 'krbsrvname': 'postgres', 'gssdelegation': '0', 'target_session_attrs': 'any', 'load_balance_hosts': 'disable'}
+\`\`\`
+
+**Verification:**
+The output verifies that the `jobs-service` container successfully resolved the hostname `postgres` through Docker's internal DNS and established a database connection. It shows the connection was made to `host': 'postgres'` on `port': '5432'`, using the credentials passed via the `DATABASE_URL` environment variable.
+
+
+### 5.3 – Nginx routing analysis
+
+**Trace of the request journey (`Browser → POST http://localhost/api/applications/`):**
+
+1. **Which nginx `location` block matches:**
+   The request hits the Nginx proxy (which listens on port 80 of the host machine). Nginx processes the URL and matches it against the `location /api/applications/` block defined in its configuration file.
+
+2. **What the `rewrite` rule transforms the path to:**
+   Inside that location block, the `rewrite` rule (typically `rewrite ^/api/applications/(.*) /$1 break;`) strips the `/api/applications` prefix. It transforms the path so that the downstream service only sees `/` (or whatever follows the prefix).
+
+3. **Which upstream container receives the request and on which port:**
+   Nginx forwards the transformed request to the upstream `applications-service` container over the internal Docker network (`jobboard-network`) on its internal port `8000`.
+
+4. **How the response travels back to the browser:**
+   The `applications-service` processes the POST request (e.g., saving data to the database) and generates an HTTP response. It sends this response back to the `nginx-proxy` container via the internal Docker network. Finally, Nginx passes the response back out through localhost on port 80 directly to the user's browser.
+
+
+   Connected to PostgreSQL: {'user': 'postgres', 'channel_binding': 'prefer', 'dbname': 'jobboard', 'host': 'postgres', 'port': '5432', 'options': '', 'sslmode': 'prefer', 'sslcompression': '0', 'sslcertmode': 'allow', 'sslsni': '1', 'ssl_min_protocol_version': 'TLSv1.2', 'gssencmode': 'prefer', 'krbsrvname': 'postgres', 'gssdelegation': '0', 'target_session_attrs': 'any', 'load_balance_hosts': 'disable'}
+alexei-lnx@alexei-linx:~/DevSecOps/DevSecOps22/projects/lab-job-board$ docker exec -it jobs-service python3 -c "import psycopg2; import os; conn = psycopg2.connect(os.environ['DATABASE_URL']); print('Connected to PostgreSQL:', conn.get_dsn_parameters()); conn.close()"
+Connected to PostgreSQL: {'user': 'postgres', 'channel_binding': 'prefer', 'dbname': 'jobboard', 'host': 'postgres', 'port': '5432', 'options': '', 'sslmode': 'prefer', 'sslcompression': '0', 'sslcertmode': 'allow', 'sslsni': '1', 'ssl_min_protocol_version': 'TLSv1.2', 'gssencmode': 'prefer', 'krbsrvname': 'postgres', 'gssdelegation': '0', 'target_session_attrs': 'any', 'load_balance_hosts': 'disable'}
+
+
+

@@ -381,7 +381,7 @@ grep -c "INSERT INTO" backup_*.sql
    - `DOCKERHUB_USERNAME` — your Docker Hub username
    - `DOCKERHUB_TOKEN` — a Docker Hub access token ([create one here](https://hub.docker.com/settings/security))
 
-#### 4.2 – Trigger and verify the pipeline (10 pts)
+ 
 
 Push a change to the `main` branch and verify the pipeline runs successfully:
 
