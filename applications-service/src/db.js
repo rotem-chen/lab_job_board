@@ -4,7 +4,7 @@ const { Pool } = require('pg');
 const fs = require('fs'); // Added to read the secret file
 
 const secretPath = '/run/secrets/db_password';
-let dbPassword = 'jobboard123'; // Fallback for local execution
+let dbPassword = process.env.POSTGRES_PASSWORD || 'jobboard123';
 
 // Read the password from the secret file
 try {
@@ -13,7 +13,13 @@ try {
   }
 } catch (err) {
   console.error('Could not read secret file:', err);
-}
+}  
+
+// const dbUser = process.env.POSTGRES_USER || 'postgres';
+// const dbName = process.env.POSTGRES_DB || 'jobboard';
+// const dbHost = process.env.POSTGRES_HOST || 'postgres';
+// const dbPort = process.env.POSTGRES_PORT || 5432;
+
 // Dynamically construct the database URL
 const DATABASE_URL = `postgresql://postgres:${encodeURIComponent(dbPassword)}@postgres:5432/jobboard`;
 
@@ -22,9 +28,9 @@ const pool = new Pool({
   //   process.env.DATABASE_URL ||
   //   'postgresql://postgres:jobboard123@localhost:5432/jobboard',
   // Use the environment variable if it exists, otherwise use our constructed URL
-  connectionString: process.env.DATABASE_URL || DATABASE_URL,
+  connectionString: DATABASE_URL,
   max: 10,
-  idleTimeoutMillis: 30000,
+  idleTimeoutMillis: 30000, 
   connectionTimeoutMillis: 5000,
 });
 

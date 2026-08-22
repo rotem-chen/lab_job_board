@@ -15,10 +15,16 @@ if os.path.exists(secret_path):
     with open(secret_path, "r") as file:
         db_password = file.read().strip()
 else:
-    db_password = "jobboard123" # Fallback for local execution
+    #db_password = "jobboard123" # Fallback for local execution
+    db_password = os.getenv("POSTGRES_PASSWORD", "jobboard123")
 
+db_user = os.getenv("POSTGRES_USER", "postgres")
+db_name = os.getenv("POSTGRES_DB", "jobboard")
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 # Dynamically construct the database URL with the retrieved password
-DATABASE_URL = f"postgresql://postgres:{urllib.parse.quote_plus(db_password)}@postgres:5432/jobboard"
+if not DATABASE_URL:
+    DATABASE_URL = f"postgresql://postgres:{urllib.parse.quote_plus(db_password)}@postgres:5432/jobboard"
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

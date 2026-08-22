@@ -24,7 +24,9 @@ metadata:
     app.kubernetes.io/name: jobs-ingress
   annotations:
     nginx.ingress.kubernetes.io/use-regex:       "true"
-    nginx.ingress.kubernetes.io/rewrite-target:  /jobs/$2
+    nginx.ingress.kubernetes.io/rewrite-target:  /jobs$1
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      rewrite ^(/api/jobs)/$ $1 permanent;
     nginx.ingress.kubernetes.io/proxy-read-timeout: "30"
     nginx.ingress.kubernetes.io/limit-rps:       "30"
 spec:
@@ -51,7 +53,9 @@ metadata:
     app.kubernetes.io/name: applications-ingress
   annotations:
     nginx.ingress.kubernetes.io/use-regex:       "true"
-    nginx.ingress.kubernetes.io/rewrite-target:  /applications/$2
+    nginx.ingress.kubernetes.io/rewrite-target:  /applications$1
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      rewrite ^(/api/applications)/$ $1 permanent;
     nginx.ingress.kubernetes.io/proxy-read-timeout: "30"
     nginx.ingress.kubernetes.io/limit-rps:       "30"
 spec:
