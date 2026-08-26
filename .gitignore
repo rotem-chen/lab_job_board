@@ -29,3 +29,6 @@ k8s/01-secret.yaml
 .vscode/
 .idea/
 *.swp
+
+# Docker secrets
+db_password.txt
