@@ -8,6 +8,8 @@ WORKDIR /build
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+#RUN pip install --no-cache-dir --platform manylinux2014_x86_64 --only-binary=:all: --prefix=/install -r requirements.txt
+
 
 # ── Stage 2: lean runtime image ───────────────────────────────
 #FROM python:3.12-slim

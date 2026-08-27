@@ -46,12 +46,7 @@ services:
       context: ./jobs-service
       dockerfile: Dockerfile
     container_name: jobs-service
-    environment:
-      POSTGRES_USER:          ${POSTGRES_USER:-postgres}
-      POSTGRES_DB:            ${POSTGRES_DB:-jobboard}
-      POSTGRES_HOST:          postgres
-      POSTGRES_PORT:          "5432"
-      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+#    environment:
 #      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-jobboard123}@postgres:5432/${POSTGRES_DB:-jobboard}
     secrets:
       - db_password
@@ -85,11 +80,6 @@ services:
       dockerfile: Dockerfile
     container_name: applications-service
     environment:
-      POSTGRES_USER:          ${POSTGRES_USER:-postgres}
-      POSTGRES_DB:            ${POSTGRES_DB:-jobboard}
-      POSTGRES_HOST:          postgres
-      POSTGRES_PORT:          "5432"
-      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
     #  DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-jobboard123}@postgres:5432/${POSTGRES_DB:-jobboard}
       PORT: 3001
     secrets:
@@ -182,5 +172,6 @@ networks:
   jobboard-network:
     driver: bridge
     name: jobboard-network
+
 
 
