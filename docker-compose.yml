@@ -41,7 +41,8 @@ services:
       context: ./jobs-service
       dockerfile: Dockerfile
     container_name: jobs-service
-#    environment:
+    environment:
+      DB_HOST: postgres
 #      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-jobboard123}@postgres:5432/${POSTGRES_DB:-jobboard}
     secrets:
       - db_password
