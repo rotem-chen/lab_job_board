@@ -1,45 +1,55 @@
 'use strict';
+'use strict';
 
 const { Pool } = require('pg');
-const fs = require('fs'); // Added to read the secret file
+const fs = require('fs');
 
-const secretPath = '/run/secrets/db_password';
-let dbPassword = 'jobboard123'; // Fallback for local execution
+// ─── 1. RESOLVE PASSWORD (Hierarchy: File -> Env Var -> Local Default) ───
+let dbPassword = 'jobboard123'; // Lowest priority: Local execution fallback
 
-// Read the password from the secret file
-try {
-  if (fs.existsSync(secretPath)) {
+// Check if a specific file path was provided (useful for custom K8s mount paths)
+const secretPath = process.env.DB_PASSWORD_FILE || '/run/secrets/db_password';
+
+if (fs.existsSync(secretPath)) {
+  // Highest priority: Docker Secrets or Kubernetes mounted secrets
+  try {
     dbPassword = fs.readFileSync(secretPath, 'utf8').trim();
+    console.log('[db] Using password from secret file');
+  } catch (err) {
+    console.error('[db] Could not read secret file:', err);
   }
-} catch (err) {
-  console.error('Could not read secret file:', err);
+} else if (process.env.DB_PASSWORD) {
+  // Medium priority: Standard environment variables
+  dbPassword = process.env.DB_PASSWORD;
+  console.log('[db] Using password from environment variable');
+} else {
+  console.log('[db] Using fallback local password');
 }
-// Dynamically construct the database URL
-const DATABASE_URL = `postgresql://postgres:${encodeURIComponent(dbPassword)}@postgres:5432/jobboard`;
+
+// ─── 2. RESOLVE CONNECTION SETTINGS ───────────────────────────────────────
+// When running locally, it defaults to 'localhost'.
+// In Docker/K8s, we will pass these in via environment variables.
+const dbHost = process.env.DB_HOST || 'localhost';
+const dbUser = process.env.DB_USER || 'postgres';
+const dbName = process.env.DB_NAME || 'jobboard';
+const dbPort = process.env.DB_PORT || 5432;
+
+// ─── 3. INITIALIZE POOL ───────────────────────────────────────────────────
 const pool = new Pool({
-  host: 'postgres',
-  user: 'postgres',
-  password: dbPassword,    // Explicitly use the secret we read from the file
-  database: 'jobboard',
-  port: 5432,
+  host: dbHost,
+  user: dbUser,
+  password: dbPassword,
+  database: dbName,
+  port: dbPort,
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
 });
-// const pool = new Pool({
-//   // connectionString:
-//   //   process.env.DATABASE_URL ||
-//   //   'postgresql://postgres:jobboard123@localhost:5432/jobboard',
-//   // Use the environment variable if it exists, otherwise use our constructed URL
-//   connectionString: process.env.DATABASE_URL || DATABASE_URL,
-//   max: 10,
-//   idleTimeoutMillis: 30000,
-//   connectionTimeoutMillis: 5000,
-// });
 
 pool.on('error', (err) => {
   console.error('Unexpected database pool error:', err.message);
 });
+
 
 async function initDB() {
   await pool.query(`
