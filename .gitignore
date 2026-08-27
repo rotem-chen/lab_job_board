@@ -1,5 +1,6 @@
 # Environment
 .env
+.my_secrets
 
 # Python
 __pycache__/
@@ -28,3 +29,6 @@ k8s/01-secret.yaml
 .vscode/
 .idea/
 *.swp
+
+.my_secrets
+db_password.txt
