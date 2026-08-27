@@ -19,11 +19,9 @@ RUN apk update && apk upgrade --no-cache && \
 
 WORKDIR /app
 
-COPY --from=deps /app/node_modules ./node_modules
-COPY src/ ./src/
-COPY package.json ./
-
-#RUN chown -R appuser:appgroup /app
+COPY --from=deps --chown=appuser:appgroup /app/node_modules ./node_modules
+COPY --chown=appuser:appgroup src/ ./src/
+COPY --chown=appuser:appgroup package.json ./
 
 USER appuser
 

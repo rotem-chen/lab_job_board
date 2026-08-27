@@ -3,16 +3,6 @@
 const { Pool } = require('pg');
 const fs = require('fs');
 
-const secretPath = '/run/secrets/db_password';
-//let dbPassword = 'jobboard123'; // Fallback for local execution
-
-//  Database configuration
-// const dbHost = process.env.POSTGRES_HOST || 'postgres';
-// const dbPort = process.env.POSTGRES_PORT || '5432';
-// const dbName = process.env.POSTGRES_DB   || 'jobboard';
-// const dbUser = process.env.POSTGRES_USER || 'postgres';
-
-
 function buildConnectionString() {
   const passwordFile = process.env.POSTGRES_PASSWORD_FILE;
   if (passwordFile) {
@@ -25,25 +15,7 @@ function buildConnectionString() {
   }
   return process.env.DATABASE_URL || 'postgresql://postgres:jobboard123@localhost:5432/jobboard';
 }
-// Dynamically construct the database URL
-//const DATABASE_URL = `postgresql://postgres:${encodeURIComponent(dbPassword)}@postgres:5432/jobboard`;
-// Use DATABASE_URL if explicitly provided.
-// Otherwise construct it from the configuration above.
-// const DATABASE_URL =
-//   process.env.DATABASE_URL ||
-//   `postgresql://${encodeURIComponent(dbUser)}:${encodeURIComponent(dbPassword)}@${dbHost}:${dbPort}/${encodeURIComponent(dbName)}`;
 
-
-// const pool = new Pool({
-//   // connectionString:
-//   //   process.env.DATABASE_URL ||
-//   //   'postgresql://postgres:jobboard123@localhost:5432/jobboard',
-//   // Use the environment variable if it exists, otherwise use our constructed URL
-//   connectionString: DATABASE_URL,
-//   max: 10,
-//   idleTimeoutMillis: 30000,
-//   connectionTimeoutMillis: 5000,
-// });
 const pool = new Pool({
   connectionString: buildConnectionString(),
   max: 10,

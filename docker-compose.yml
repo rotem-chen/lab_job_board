@@ -1,3 +1,5 @@
+name: jobboard
+
 # ── secrets ───────────────────────────────────────────────────
 secrets:
   db_password:
@@ -15,7 +17,7 @@ services:
       #POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jobboard123}
       POSTGRES_PASSWORD_FILE: /run/secrets/db_password
     secrets:
-    - db_password
+      - db_password
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./init-db/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
@@ -39,15 +41,18 @@ services:
           cpus: "0.50"
           memory: 256M
 
-
   # ── Jobs Microservice (Python / FastAPI) ───────────────────────
   jobs-service:
     build:
       context: ./jobs-service
       dockerfile: Dockerfile
     container_name: jobs-service
-#    environment:
-#      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-jobboard123}@postgres:5432/${POSTGRES_DB:-jobboard}
+    environment:
+      POSTGRES_USER:          ${POSTGRES_USER:-postgres}
+      POSTGRES_DB:            ${POSTGRES_DB:-jobboard}
+      POSTGRES_HOST:          postgres
+      POSTGRES_PORT:          "5432"
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
     secrets:
       - db_password
     depends_on:
@@ -80,7 +85,11 @@ services:
       dockerfile: Dockerfile
     container_name: applications-service
     environment:
-    #  DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-jobboard123}@postgres:5432/${POSTGRES_DB:-jobboard}
+      POSTGRES_USER:          ${POSTGRES_USER:-postgres}
+      POSTGRES_DB:            ${POSTGRES_DB:-jobboard}
+      POSTGRES_HOST:          postgres
+      POSTGRES_PORT:          "5432"
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
       PORT: 3001
     secrets:
       - db_password
@@ -107,7 +116,6 @@ services:
           cpus: "0.50"
           memory: 256M
 
-
   # ── React Frontend ─────────────────────────────────────────────
   frontend:
     build:
@@ -132,7 +140,6 @@ services:
         limits:
           cpus: "0.25"
           memory: 64M
-
 
   # ── Nginx Reverse Proxy (single external entry-point) ──────────
   nginx:
@@ -160,7 +167,6 @@ services:
           cpus: "0.25"
           memory: 64M
 
-
 # ── Named Volumes ──────────────────────────────────────────────
 volumes:
   postgres-data:
@@ -172,6 +178,3 @@ networks:
   jobboard-network:
     driver: bridge
     name: jobboard-network
-
-
-

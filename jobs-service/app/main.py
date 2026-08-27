@@ -12,6 +12,7 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Jobs Service",
+    root_path="/api/jobs",
     description="Microservice for managing job listings",
     version="1.0.0",
 )

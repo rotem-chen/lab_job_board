@@ -82,7 +82,7 @@ docker version
 
 ---
 
-kvrh. auc 
+## Setup — Step by Step
 
 ### Step 1 — Start minikube
 

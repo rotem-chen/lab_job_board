@@ -4,7 +4,8 @@ const jobsClient = axios.create({ baseURL: '/api/jobs' });
 const appsClient = axios.create({ baseURL: '/api/applications' });
 
 export const jobsApi = {
-  getAll:  ()           => jobsClient.get('/').then(r => r.data),
+  //getAll:  ()           => jobsClient.get('/').then(r => r.data),
+  getAll:  ()           => jobsClient.get('').then(r => r.data),
   getOne:  (id)         => jobsClient.get(`/${id}`).then(r => r.data),
   create:  (data)       => jobsClient.post('/', data).then(r => r.data),
   update:  (id, data)   => jobsClient.put(`/${id}`, data).then(r => r.data),
